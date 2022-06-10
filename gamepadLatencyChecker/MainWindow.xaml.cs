@@ -137,7 +137,7 @@ namespace gamepadLatencyChecker
                 using (SerialPort port = new SerialPort(SelectedSerialPortName, 115200))
                 {
                     Stopwatch stopwatch = new Stopwatch();
-                    List<long> latencys = new List<long>(TryTimes);
+                    List<double> latencys = new List<double>(TryTimes);
                     for (int i = 0; i < TryTimes; i++)
                     {
                         stopwatch.Restart();
@@ -177,8 +177,9 @@ namespace gamepadLatencyChecker
                         port.Write(new byte[1] { 0 }, 0, 1);
 
                         //結果出力
-                        latencys.Add(stopwatch.ElapsedMilliseconds);
-                        ResultList.Add($"{i + 1}回目　{stopwatch.ElapsedMilliseconds} ミリ秒");
+                        double elapsed = stopwatch.Elapsed.TotalMilliseconds;
+                        latencys.Add(elapsed);
+                        ResultList.Add($"{i + 1}回目　{elapsed} ミリ秒");
 
                         Thread.Sleep(100);
                     }
