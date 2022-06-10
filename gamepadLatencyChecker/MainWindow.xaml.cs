@@ -134,8 +134,11 @@ namespace gamepadLatencyChecker
 
             await Task.Run(() => 
             {
-                using (SerialPort port = new SerialPort(SelectedSerialPortName, 115200))
+                SerialPort port = null;
+                try
                 {
+                    port = new SerialPort(SelectedSerialPortName, 115200);
+
                     Stopwatch stopwatch = new Stopwatch();
                     List<double> latencys = new List<double>(TryTimes);
                     for (int i = 0; i < TryTimes; i++)
@@ -186,7 +189,14 @@ namespace gamepadLatencyChecker
 
                     ResultList.Add("");
                     ResultList.Add($"平均:{latencys.Average():F2} 最小:{latencys.Min()} 最大:{latencys.Max()}");
-
+                }
+                finally
+                {
+                    if (port != null)
+                    {
+                        port.Write(new byte[1] { 0 }, 0, 1);
+                        port.Dispose();
+                    }
                 }
             });
         }
