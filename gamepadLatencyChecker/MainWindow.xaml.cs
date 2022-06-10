@@ -4,8 +4,10 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO.Ports;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Linq;
 
 namespace gamepadLatencyChecker
 {
@@ -57,6 +59,40 @@ namespace gamepadLatencyChecker
             }
         }
 
+        private static readonly PropertyChangedEventArgs TryTimesPropertyChangedEventArgs = new PropertyChangedEventArgs(nameof(TryTimes));
+
+        private int tryTimes = 10;
+        /// <summary>
+        /// 試行回数
+        /// </summary>
+        public int TryTimes
+        {
+            get { return this.tryTimes; }
+            set
+            {
+                if (this.tryTimes == value) { return; }
+                this.tryTimes = value;
+                this.PropertyChanged?.Invoke(this, TryTimesPropertyChangedEventArgs);
+            }
+        }
+
+        private static readonly PropertyChangedEventArgs ResultListPropertyChangedEventArgs = new PropertyChangedEventArgs(nameof(ResultList));
+
+        private ObservableCollection<string> _resultList;
+        /// <summary>
+        /// 結果リストボックスに表示する文字列
+        /// </summary>
+        public ObservableCollection<string> ResultList
+        {
+            get { return this._resultList; }
+            set
+            {
+                if (this._resultList == value) { return; }
+                this._resultList = value;
+                this.PropertyChanged?.Invoke(this, ResultListPropertyChangedEventArgs);
+            }
+        }
+
 
         /// <summary>
         /// シリアルポート名一覧コンボボックスに値を設定します。
@@ -72,8 +108,11 @@ namespace gamepadLatencyChecker
         /// </summary>
         private async void Button_Click(object sender, RoutedEventArgs e)
         {
+            ResultList = new ObservableCollection<string>();
+
             if (string.IsNullOrWhiteSpace(SelectedSerialPortName))
             {
+                ResultList.Add("COMポートが選択されていません。");
                 return;
             }
 
@@ -89,6 +128,7 @@ namespace gamepadLatencyChecker
 
             if (xInputs.Count == 0)
             {
+                ResultList.Add("コントローラが接続されていません。");
                 return;
             }
 
@@ -97,36 +137,57 @@ namespace gamepadLatencyChecker
                 using (SerialPort port = new SerialPort(SelectedSerialPortName, 115200))
                 {
                     Stopwatch stopwatch = new Stopwatch();
-
-                    stopwatch.Restart();
-                    port.Write(new byte[1] { 1 }, 0, 1);
-
-                    //コントローラのボタン入力があるまでループ
-                    while (true)
+                    List<long> latencys = new List<long>(TryTimes);
+                    for (int i = 0; i < TryTimes; i++)
                     {
-                        foreach (var input in xInputs)
+                        stopwatch.Restart();
+                        port.Write(new byte[1] { 1 }, 0, 1);
+
+                        //コントローラのボタン入力があるまでループ
+                        while (true)
                         {
-                            XInputState contState = input.GetState();
-                            XInputGamepadState Xpad = contState.Gamepad;
-                            XInputButtonKind buttonFlags = Xpad.Buttons;
-                            if (buttonFlags != 0)
+                            foreach (var input in xInputs)
                             {
-                                //ボタン入力があったら、Stopwatchを止める。
-                                stopwatch.Stop();
+                                XInputState contState = input.GetState();
+                                XInputGamepadState Xpad = contState.Gamepad;
+                                XInputButtonKind buttonFlags = Xpad.Buttons;
+                                if (buttonFlags != 0)
+                                {
+                                    //ボタン入力があったら、Stopwatchを止める。
+                                    stopwatch.Stop();
+                                    break;
+                                }
+                            }
+
+                            if (!stopwatch.IsRunning)
+                            {
+                                //Stopwatchが止まっていたら、ボタン入力があったので、終了。
                                 break;
+                            }
+
+                            if (stopwatch.ElapsedMilliseconds > 1000)
+                            {
+                                //1秒でタイムアウト
+                                ResultList.Add("ボタン入力がありませんでした。");
+                                stopwatch.Stop();
+                                return;
                             }
                         }
 
-                        if (!stopwatch.IsRunning)
-                        {
-                            //Stopwatchが止まっていたら、ボタン入力があったので、終了。
-                            break;
-                        }
+                        port.Write(new byte[1] { 0 }, 0, 1);
+
+                        //結果出力
+                        latencys.Add(stopwatch.ElapsedMilliseconds);
+                        ResultList.Add($"{i + 1}回目　{stopwatch.ElapsedMilliseconds} ミリ秒");
+
+                        Thread.Sleep(100);
                     }
+
+                    ResultList.Add("");
+                    ResultList.Add($"平均:{latencys.Average():F2} 最小:{latencys.Min()} 最大:{latencys.Max()}");
 
                 }
             });
-
         }
     }
 }

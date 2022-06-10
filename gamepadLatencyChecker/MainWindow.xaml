@@ -14,10 +14,10 @@
             </DockPanel>
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="3">
                 <TextBlock Text="試行回数" Width="70"/>
-                <TextBox Width="50" Text="10"/>
+                <TextBox Width="50" Text="{Binding TryTimes}"/>
             </StackPanel>
             <Button DockPanel.Dock="Top" Content="実行" Margin="3" Click="Button_Click"/>
-            <ListBox Margin="3"/>
+            <ListBox Margin="3" ItemsSource="{Binding ResultList}"/>
         </DockPanel>
     </Grid>
 </Window>
