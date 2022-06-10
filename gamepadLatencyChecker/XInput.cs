@@ -36,18 +36,6 @@ namespace Controller
         public XInputCapabilities Capabilities { get; protected set; }
 
         /// <summary>
-        /// ヘッドセットが接続されている場合、レンダリングデバイスのGUIDを取得します。
-        /// 接続されていない場合、Guid.Emptyが返されると思われます。
-        /// </summary>
-        public Guid DSoundRenderDeviceGuid { get; protected set; }
-
-        /// <summary>
-        /// ヘッドセットが接続されている場合、キャプチャデバイスのGUIDを取得します。
-        /// 接続されていない場合、Guid.Emptyが返されると思われます。
-        /// </summary>
-        public Guid DSoundCaptureDeviceGuid { get; protected set; }
-
-        /// <summary>
         /// コントローラーの番号を取得します。
         /// </summary>
         public uint Number { get; protected set; }
@@ -67,13 +55,6 @@ namespace Controller
             var c = new XInputCapabilities();
             XInputGetCapabilities(Number, 0, out c);
             Capabilities = c;
-
-            var cd = new Guid();
-            var rd = new Guid();
-            XInputGetDSoundAudioDeviceGuids(Number, out rd, out cd);
-            DSoundCaptureDeviceGuid = cd;
-            DSoundRenderDeviceGuid = rd;
-
         }
 
         /// <summary>
