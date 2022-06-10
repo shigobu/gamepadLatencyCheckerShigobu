@@ -78,7 +78,7 @@ namespace gamepadLatencyChecker
 
         private static readonly PropertyChangedEventArgs ResultListPropertyChangedEventArgs = new PropertyChangedEventArgs(nameof(ResultList));
 
-        private ObservableCollection<string> _resultList;
+        private ObservableCollection<string> _resultList = new ObservableCollection<string>();
         /// <summary>
         /// 結果リストボックスに表示する文字列
         /// </summary>
@@ -108,7 +108,7 @@ namespace gamepadLatencyChecker
         /// </summary>
         private async void Button_Click(object sender, RoutedEventArgs e)
         {
-            ResultList = new ObservableCollection<string>();
+            ResultList.Clear();
 
             //使えるコントローラの作成
             List<XInput> xInputs = new List<XInput>();
