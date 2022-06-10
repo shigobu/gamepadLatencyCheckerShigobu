@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:gamepadLatencyChecker"
         mc:Ignorable="d"
-        Title="MainWindow" Width="300" MinWidth="300" MaxWidth="300" Height="300" MinHeight="300">
+        Title="MainWindow" Width="300" MinWidth="300" MaxWidth="300" Height="300" MinHeight="300" WindowStartupLocation="CenterScreen">
     <Grid Margin="5">
         <DockPanel>
             <DockPanel DockPanel.Dock="Top" Margin="3">
