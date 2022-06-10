@@ -5,8 +5,19 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:gamepadLatencyChecker"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        
+        Title="MainWindow" Width="300" MinWidth="300" MaxWidth="300" Height="300" MinHeight="300">
+    <Grid Margin="5">
+        <DockPanel>
+            <DockPanel DockPanel.Dock="Top" Margin="3">
+                <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center" Text="COMポート" Width="70"/>
+                <ComboBox ItemsSource="{Binding SerialPortNames}" SelectedItem="{Binding SelectedSerialPortName}"/>
+            </DockPanel>
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="3">
+                <TextBlock Text="試行回数" Width="70"/>
+                <TextBox Width="50" Text="10"/>
+            </StackPanel>
+            <Button DockPanel.Dock="Top" Content="実行" Margin="3" Click="Button_Click"/>
+            <ListBox Margin="3"/>
+        </DockPanel>
     </Grid>
 </Window>
