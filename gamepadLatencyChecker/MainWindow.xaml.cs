@@ -188,7 +188,7 @@ namespace gamepadLatencyChecker
                     }
 
                     ResultList.Add("");
-                    ResultList.Add($"平均:{latencys.Average():F2} 最小:{latencys.Min()} 最大:{latencys.Max()}");
+                    ResultList.Add($"平均:{latencys.Average():F2} 最小:{latencys.Min():F2} 最大:{latencys.Max():F2}");
                 }
                 finally
                 {
