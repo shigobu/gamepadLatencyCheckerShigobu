@@ -10,22 +10,22 @@ namespace Controller
     {
         #region DllImport宣言
 
-        [DllImport("xinput1_3.dll", CallingConvention = CallingConvention.Winapi)]
+        [DllImport("xinput1_4.dll", CallingConvention = CallingConvention.Winapi)]
         extern static uint XInputGetCapabilities(uint num, uint flag, out XInputCapabilities pxic);
 
-        [DllImport("xinput1_3.dll", CallingConvention = CallingConvention.Winapi)]
+        [DllImport("xinput1_4.dll", CallingConvention = CallingConvention.Winapi)]
         extern static uint XInputGetDSoundAudioDeviceGuids(uint num, out Guid render, out Guid capture);
 
-        [DllImport("xinput1_3.dll", CallingConvention = CallingConvention.Winapi)]
+        [DllImport("xinput1_4.dll", CallingConvention = CallingConvention.Winapi)]
         extern static uint XInputGetKeystroke(uint num, uint fetch, out XInputState stroke);
 
-        [DllImport("xinput1_3.dll", CallingConvention = CallingConvention.Winapi)]
+        [DllImport("xinput1_4.dll", CallingConvention = CallingConvention.Winapi)]
         extern static uint XInputSetState(uint num, ref XInputVibrationState vib);
 
-        [DllImport("xinput1_3.dll", CallingConvention = CallingConvention.Winapi)]
+        [DllImport("xinput1_4.dll", CallingConvention = CallingConvention.Winapi)]
         extern static uint XInputGetState(uint num, out XInputState state);
 
-        [DllImport("xinput1_3.dll", CallingConvention = CallingConvention.Winapi)]
+        [DllImport("xinput1_4.dll", CallingConvention = CallingConvention.Winapi)]
         extern static void XInputEnable([MarshalAs(UnmanagedType.Bool)]bool enable);
 
         #endregion

@@ -110,12 +110,6 @@ namespace gamepadLatencyChecker
         {
             ResultList = new ObservableCollection<string>();
 
-            if (string.IsNullOrWhiteSpace(SelectedSerialPortName))
-            {
-                ResultList.Add("COMポートが選択されていません。");
-                return;
-            }
-
             //使えるコントローラの作成
             List<XInput> xInputs = new List<XInput>();
             for (uint i = 0; i < 4; i++)
@@ -129,6 +123,12 @@ namespace gamepadLatencyChecker
             if (xInputs.Count == 0)
             {
                 ResultList.Add("コントローラが接続されていません。");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(SelectedSerialPortName))
+            {
+                ResultList.Add("COMポートが選択されていません。");
                 return;
             }
 
