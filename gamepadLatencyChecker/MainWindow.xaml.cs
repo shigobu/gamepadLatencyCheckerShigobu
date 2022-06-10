@@ -179,7 +179,7 @@ namespace gamepadLatencyChecker
                         //結果出力
                         double elapsed = stopwatch.Elapsed.TotalMilliseconds;
                         latencys.Add(elapsed);
-                        ResultList.Add($"{i + 1}回目　{elapsed} ミリ秒");
+                        ResultList.Add($"{i + 1}回目　{elapsed:F2} ミリ秒");
 
                         Thread.Sleep(100);
                     }
