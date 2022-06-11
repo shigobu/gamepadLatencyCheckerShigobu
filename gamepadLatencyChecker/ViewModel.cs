@@ -1,4 +1,6 @@
 ﻿using Controller;
+using SharpDX;
+using SharpDX.DirectInput;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -18,13 +20,17 @@ namespace gamepadLatencyChecker
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public ViewModel()
+        public ViewModel(MainWindow mainWindow)
         {
             SetSerialPortNames();
+
+            Owner = mainWindow;
 
             BindingOperations.EnableCollectionSynchronization(ResultList, _listBoxLock);
             StartButtonCommand = new DelegateCommand(Button_Click);
         }
+
+        private MainWindow Owner { get; set; }
 
         // ロックオブジェクト
         private readonly object _listBoxLock = new object();
@@ -130,25 +136,54 @@ namespace gamepadLatencyChecker
             ResultList.Clear();
 
             //使えるコントローラの作成
-            List<XInput> xInputs = new List<XInput>();
-            for (uint i = 0; i < 4; i++)
+            DirectInput dinput = new DirectInput();
+            IList<DeviceInstance> devList = dinput.GetDevices(DeviceClass.GameControl, DeviceEnumerationFlags.AttachedOnly);
+
+
+            Joystick[] joystick = new Joystick[devList.Count];
+
+            int i = 0;
+            foreach (DeviceInstance dev in devList)
             {
-                if (XInput.IsConnected(i))
+                joystick[i] = new Joystick(dinput, dev.InstanceGuid);
+                var helper = new System.Windows.Interop.WindowInteropHelper(Owner);
+                i++;
+            }
+
+            if (joystick == null)
+            {
+                ResultList.Add("ゲームパッドなし");
+                return;
+            }
+
+            for (i = 0; i < joystick.Length; i++)
+            {
+                foreach (DeviceObjectInstance deviceObject in joystick[i].GetObjects())
                 {
-                    xInputs.Add(new XInput(i));
+                    switch (deviceObject.ObjectId.Flags)
+                    {
+                        // 絶対軸または相対軸
+                        case DeviceObjectTypeFlags.Axis:
+                        case DeviceObjectTypeFlags.AbsoluteAxis:
+                        case DeviceObjectTypeFlags.RelativeAxis:
+                            var ir = joystick[i].GetObjectPropertiesById(deviceObject.ObjectId);
+                            if (ir != null)
+                            {
+                                try
+                                {
+                                    ir.Range = new InputRange(-1000, 1000);
+                                }
+                                catch (Exception) { }
+                            }
+                            break;
+                    }
                 }
             }
 
-            if (xInputs.Count == 0)
+            for (i = 0; i < joystick.Length; i++)
             {
-                ResultList.Add("コントローラが接続されていません。");
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(SelectedSerialPortName))
-            {
-                ResultList.Add("COMポートが選択されていません。");
-                return;
+                // デバイスに対するアクセス権をとる
+                joystick[i].Acquire();
             }
 
             await Task.Run(() =>
@@ -161,7 +196,7 @@ namespace gamepadLatencyChecker
 
                     Stopwatch stopwatch = new Stopwatch();
                     List<double> latencys = new List<double>(TryTimes);
-                    for (int i = 0; i < TryTimes; i++)
+                    for (i = 0; i < TryTimes; i++)
                     {
                         stopwatch.Restart();
                         port.Write(new byte[1] { 1 }, 0, 1);
@@ -169,12 +204,21 @@ namespace gamepadLatencyChecker
                         //コントローラのボタン入力があるまでループ
                         while (true)
                         {
-                            foreach (var input in xInputs)
+                            foreach (var input in joystick)
                             {
-                                XInputState contState = input.GetState();
-                                XInputGamepadState Xpad = contState.Gamepad;
-                                XInputButtonKind buttonFlags = Xpad.Buttons;
-                                if (buttonFlags != 0)
+                                JoystickState state;
+
+                                state = input.GetCurrentState();
+                                if (state == null)
+                                {
+                                    lock (_listBoxLock)
+                                    {
+                                        ResultList.Add("ゲームパッドをロストしました。");
+                                    }
+                                    return;
+                                }
+                                bool[] buttons = state.Buttons;
+                                if (buttons.Contains(true))
                                 {
                                     //ボタン入力があったら、Stopwatchを止める。
                                     stopwatch.Stop();
@@ -227,6 +271,11 @@ namespace gamepadLatencyChecker
                     }
                 }
             });
+
+            foreach (var item in joystick)
+            {
+                item.Dispose();
+            }
         }
 
     }
@@ -241,7 +290,7 @@ class DelegateCommand : ICommand
 {
     public event EventHandler CanExecuteChanged;
 
-    public DelegateCommand(Action executeMethod)
+    public DelegateCommand(System.Action executeMethod)
     {
         ExecuteMethod = executeMethod;
     }
@@ -256,7 +305,7 @@ class DelegateCommand : ICommand
         ExecuteMethod();
     }
 
-    private Action ExecuteMethod { get; set; }
+    private System.Action ExecuteMethod { get; set; }
 }
 
 #endregion

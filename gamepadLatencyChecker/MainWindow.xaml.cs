@@ -20,7 +20,7 @@ namespace gamepadLatencyChecker
         {
             InitializeComponent();
 
-            this.DataContext = new ViewModel();
+            this.DataContext = new ViewModel(this);
         }
     }
 }
